@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página de Tarefas Editável</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            width: 90%;
+            max-width: 800px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+        .logo {
+            width: 100px;
+            height: auto;
+            margin-bottom: 10px;
+        }
+        h1[contenteditable="true"]:focus,
+        li[contenteditable="true"]:focus {
+            outline: 2px solid #007bff;
+            background-color: #eaf5ff;
+            border-radius: 5px;
+            padding: 5px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .tabs {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap; 
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ddd;
+        }
+        .tab-button {
+            background-color: transparent;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 14px; 
+            font-weight: bold;
+            color: #555;
+            transition: all 0.3s ease;
+        }
+        .tab-button.active {
+            color: #007bff;
+            border-bottom: 2px solid #007bff;
+        }
+        .tab-content {
+            display: none;
+            padding: 20px;
+            text-align: left;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            background-color: #f9f9f9;
+            border: 1px solid #eee;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer; /* Adicionado para indicar que é clicável */
+        }
+        .delete-button {
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-left: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .delete-button:hover {
+            background-color: #cc0000;
+        }
+        .add-task-form {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .add-task-form input {
+            flex-grow: 1;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        .add-task-form button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .add-task-form button:hover {
+            background-color: #0056b3;
+        }
+        .empty-state {
+            color: #999;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Adicione o caminho da sua logo aqui -->
+        <img src="Logotipo.avif" alt="Logo" class="logo">
+        
+        <h1 id="mainTitle" contenteditable="true">Minhas Atividades e Tarefas</h1>
+
+        <div class="tabs">
+            <button class="tab-button active" onclick="openTab('tarefas-a-fazer')">A Fazer</button>
+            <button class="tab-button" onclick="openTab('tarefas-em-progresso')">Em Progresso</button>
+            <button class="tab-button" onclick="openTab('tarefas-concluidas')">Concluídas</button>
+        </div>
+
+        <div id="tarefas-a-fazer" class="tab-content active">
+            <h2>Tarefas Pendentes</h2>
+            <ul id="tarefas-a-fazer-list"></ul>
+            <div class="add-task-form">
+                <input type="text" id="a-fazer-input" placeholder="Nova tarefa...">
+                <button onclick="addTask('tarefas-a-fazer')">Adicionar Tarefa</button>
+            </div>
+        </div>
+
+        <div id="tarefas-em-progresso" class="tab-content">
+            <h2>Tarefas em Progresso</h2>
+            <ul id="tarefas-em-progresso-list"></ul>
+            <div class="add-task-form">
+                <input type="text" id="em-progresso-input" placeholder="Nova tarefa...">
+                <button onclick="addTask('tarefas-em-progresso')">Adicionar Tarefa</button>
+            </div>
+        </div>
+
+        <div id="tarefas-concluidas" class="tab-content">
+            <h2>Tarefas Concluídas</h2>
+            <ul id="tarefas-concluidas-list"></ul>
+            <div class="add-task-form">
+                <input type="text" id="concluidas-input" placeholder="Nova tarefa...">
+                <button onclick="addTask('tarefas-concluidas')">Adicionar Tarefa</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const tabsData = {
+            'tarefas-a-fazer': {
+                listId: 'tarefas-a-fazer-list',
+                storageKey: 'pendingTasks',
+                defaultTasks: [
+                    "Item 1 para A Fazer", "Item 2 para A Fazer", "Item 3 para A Fazer", "Item 4 para A Fazer", "Item 5 para A Fazer", 
+                    "Item 6 para A Fazer", "Item 7 para A Fazer", "Item 8 para A Fazer", "Item 9 para A Fazer", "Item 10 para A Fazer"
+                ],
+                inputId: 'a-fazer-input'
+            },
+            'tarefas-em-progresso': {
+                listId: 'tarefas-em-progresso-list',
+                storageKey: 'inProgressTasks',
+                defaultTasks: [],
+                inputId: 'em-progresso-input'
+            },
+            'tarefas-concluidas': {
+                listId: 'tarefas-concluidas-list',
+                storageKey: 'completedTasks',
+                defaultTasks: [],
+                inputId: 'concluidas-input'
+            }
+        };
+
+        const STORAGE_KEY_TITLE = 'pageTitle';
+        const defaultTitle = "Minhas Atividades e Tarefas";
+
+        function loadData() {
+            const storedTitle = localStorage.getItem(STORAGE_KEY_TITLE);
+            document.getElementById('mainTitle').textContent = storedTitle || defaultTitle;
+            
+            for (const key in tabsData) {
+                const tab = tabsData[key];
+                const storedTasks = JSON.parse(localStorage.getItem(tab.storageKey));
+                if (!storedTasks && tab.defaultTasks.length > 0) {
+                    localStorage.setItem(tab.storageKey, JSON.stringify(tab.defaultTasks));
+                    populateList(tab.listId, tab.defaultTasks);
+                } else {
+                    populateList(tab.listId, storedTasks || []);
+                }
+            }
+        }
+
+        function populateList(ulId, tasks) {
+            const ul = document.getElementById(ulId);
+            ul.innerHTML = '';
+            if (tasks.length > 0) {
+                tasks.forEach(task => {
+                    const li = document.createElement('li');
+                    const span = document.createElement('span');
+                    span.setAttribute('contenteditable', 'true');
+                    span.textContent = task;
+                    span.addEventListener('input', saveAllData);
+
+                    const deleteButton = document.createElement('button');
+                    deleteButton.className = 'delete-button';
+                    deleteButton.textContent = 'X';
+                    deleteButton.onclick = (e) => {
+                        e.target.closest('li').remove();
+                        saveAllData();
+                    };
+
+                    li.appendChild(span);
+                    li.appendChild(deleteButton);
+                    
+                    // Adiciona o evento de clique para mover a tarefa
+                    li.onclick = (e) => {
+                        if (e.target.className !== 'delete-button') {
+                            moveTask(li);
+                        }
+                    };
+                    
+                    ul.appendChild(li);
+                });
+            } else {
+                const li = document.createElement('li');
+                const span = document.createElement('span');
+                span.setAttribute('contenteditable', 'true');
+                span.classList.add('empty-state');
+                span.textContent = "Nenhuma tarefa.";
+                span.addEventListener('input', saveAllData);
+                li.appendChild(span);
+                ul.appendChild(li);
+            }
+        }
+
+        function saveAllData() {
+            for (const key in tabsData) {
+                const tab = tabsData[key];
+                const tasks = Array.from(document.querySelectorAll(`#${tab.listId} li span`)).map(span => span.textContent);
+                localStorage.setItem(tab.storageKey, JSON.stringify(tasks));
+            }
+            const mainTitle = document.getElementById('mainTitle').textContent;
+            localStorage.setItem(STORAGE_KEY_TITLE, mainTitle);
+        }
+
+        function addTask(tabName) {
+            const tab = tabsData[tabName];
+            const input = document.getElementById(tab.inputId);
+            const taskText = input.value.trim();
+
+            if (taskText !== "") {
+                const li = document.createElement('li');
+                
+                const span = document.createElement('span');
+                span.setAttribute('contenteditable', 'true');
+                span.textContent = taskText;
+                span.addEventListener('input', saveAllData);
+
+                const deleteButton = document.createElement('button');
+                deleteButton.className = 'delete-button';
+                deleteButton.textContent = 'X';
+                deleteButton.onclick = (e) => {
+                    e.target.closest('li').remove();
+                    saveAllData();
+                };
+
+                li.appendChild(span);
+                li.appendChild(deleteButton);
+
+                // Adiciona o evento de clique para mover a tarefa
+                li.onclick = (e) => {
+                    if (e.target.className !== 'delete-button') {
+                        moveTask(li);
+                    }
+                };
+
+                document.getElementById(tab.listId).appendChild(li);
+                
+                input.value = '';
+                saveAllData();
+            }
+        }
+
+        function moveTask(taskItem) {
+            const currentUl = taskItem.parentElement;
+            const currentTabId = currentUl.id.replace('-list', '');
+
+            let nextTabId;
+            if (currentTabId === 'tarefas-a-fazer') {
+                nextTabId = 'tarefas-em-progresso';
+            } else if (currentTabId === 'tarefas-em-progresso') {
+                nextTabId = 'tarefas-concluidas';
+            } else {
+                return; // Não move a partir da aba "Concluídas"
+            }
+
+            const nextUl = document.getElementById(nextTabId + '-list');
+            nextUl.appendChild(taskItem);
+            saveAllData();
+        }
+
+        document.getElementById('mainTitle').addEventListener('input', saveAllData);
+
+        function openTab(tabName) {
+            var i;
+            var tabContent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabContent.length; i++) {
+                tabContent[i].style.display = "none";
+            }
+            var tabButtons = document.getElementsByClassName("tab-button");
+            for (i = 0; i < tabButtons.length; i++) {
+                tabButtons[i].className = tabButtons[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            event.currentTarget.className += " active";
+        }
+
+        document.addEventListener('DOMContentLoaded', loadData);
+    </script>
+
+</body>
+</html>
